@@ -12,6 +12,7 @@ const (
 )
 
 func main() {
+	var volume string
 
 	inputDir := DEFAULT_INPUT_DIR
 	outputDir := DEFAULT_OUT_DIR
@@ -23,6 +24,9 @@ func main() {
 	if len(args) >= 2 {
 		outputDir = args[1]
 	}
+	if len(args) >= 3 {
+		volume = args[2]
+	}
 
 	inputFileManager := internal.NewFileManager(inputDir)
 	outputFileManager := internal.NewFileManager(outputDir)
@@ -31,4 +35,5 @@ func main() {
 	inputFileManager.Sort()
 
 	internal.ProcessFiles(inputFileManager, outputFileManager)
+	internal.CopyToVolume(volume, outputFileManager)
 }

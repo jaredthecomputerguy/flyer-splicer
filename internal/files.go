@@ -65,6 +65,12 @@ func (fm *FileManager) getFiles() error {
 }
 
 func ProcessFiles(in *FileManager, out *FileManager) {
+
+	if len(in.Files) < 1 {
+		logWarning("copy: input dir is empty. exiting...")
+		os.Exit(1)
+	}
+
 	log("copy: copying non-flyer files to `%s`\n", out.Dir)
 
 	var flyerFile string
@@ -106,6 +112,29 @@ func ProcessFiles(in *FileManager, out *FileManager) {
 		logSuccess("  - %s", file)
 	}
 
+}
+
+func CopyToVolume(vol string, out *FileManager) {
+	if vol == "" {
+		log("volume: no volume passed, skipping copy\n")
+		return
+	}
+	info, err := os.Stat(vol)
+	if err != nil {
+		handleErr(fmt.Errorf("volume: cannot stat volume path: %w", err))
+	}
+	if !info.IsDir() {
+		handleErr(fmt.Errorf("volume: provided path is not a directory: %s", vol))
+	}
+
+	log("volume: copying files to volume `%s`\n", vol)
+
+	for _, file := range out.Files {
+		copy(out.Dir, vol, file, file)
+		logSuccess("  copied to volume: %s", file)
+	}
+
+	log("volume: finished copying to volume\n\n")
 }
 
 func copy(inDir, outDir, inFile, outFile string) {
