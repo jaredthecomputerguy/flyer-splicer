@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ type FileManager struct {
 	Files []string
 }
 
-func newFileManager(dir string) *FileManager {
+func NewFileManager(dir string) *FileManager {
 	fm := &FileManager{
 		Dir: dir,
 	}
@@ -64,7 +64,7 @@ func (fm *FileManager) getFiles() error {
 	return nil
 }
 
-func processFiles(in *FileManager, out *FileManager) {
+func ProcessFiles(in *FileManager, out *FileManager) {
 	log("copy: copying non-flyer files to `%s`\n", out.Dir)
 
 	var flyerFile string

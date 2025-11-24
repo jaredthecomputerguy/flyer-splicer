@@ -2,8 +2,7 @@
 BIN_DIR := bin
 BIN := $(BIN_DIR)/flyer-splicer
 
-# Source files
-SRC := $(wildcard *.go)
+SRC := $(shell find cmd internal -type f -name '*.go')
 
 .PHONY: all run dev clean
 
@@ -14,17 +13,17 @@ all: $(BIN)
 $(BIN): $(SRC)
 	@printf "Building...\n-----\n"
 	@mkdir -p $(BIN_DIR)
-	@go build -o $(BIN) $(SRC)
+	@go build -o $(BIN) ./cmd
 
 # Run binary
 run: $(BIN)
 	@printf "Running...\n-----\n"
 	@./$(BIN)
 
-# Development mode (quick run without building)
+# Development mode (run without building)
 dev:
 	@printf "Developing...\n-----\n"
-	@go run main.go
+	@go run ./cmd
 
 # Clean output directory
 clean:
