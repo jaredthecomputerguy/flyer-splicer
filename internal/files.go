@@ -1,71 +1,16 @@
 package internal
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"path"
 	"slices"
-	"sort"
 	"strings"
 )
 
-type FileManager struct {
-	Dir   string
-	Files []string
-}
-
-func NewFileManager(dir string) *FileManager {
-	fm := &FileManager{
-		Dir: dir,
-	}
-	if err := fm.getFiles(); err != nil {
-		handleErr(err)
-	}
-	return fm
-}
-
-func (fm *FileManager) Clean() {
-	log("clean: cleaning `%s`\n", fm.Dir)
-	if len(fm.Files) < 1 {
-		logWarning("clean: directory %s is empty\n", fm.Dir)
-		return
-	}
-
-	var err error
-
-	for _, file := range fm.Files {
-		err = os.Remove(path.Join(fm.Dir, file))
-		logErrorf("  removed: %s", file)
-	}
-
-	fm.Files = nil
-	log("clean: finished\n\n")
-	handleErr(err)
-}
-
-func (fm *FileManager) Sort() {
-	sort.Strings(fm.Files)
-}
-
-func (fm *FileManager) getFiles() error {
-	dirEntries, err := os.ReadDir(fm.Dir)
-	if err != nil {
-		return fmt.Errorf("getFiles: reading directory: %w", err)
-	}
-
-	files := make([]string, len(dirEntries))
-	for i, entry := range dirEntries {
-		files[i] = entry.Name()
-	}
-
-	fm.Files = files
-
-	return nil
-}
-
 func ProcessFiles(in *FileManager, out *FileManager) {
-
 	if len(in.Files) < 1 {
 		logWarning("copy: input dir is empty. exiting...")
 		os.Exit(1)
@@ -135,6 +80,31 @@ func CopyToVolume(vol string, out *FileManager) {
 	}
 
 	log("volume: finished copying to volume\n\n")
+
+	logSuccess("completed file processing and copy to volume successfully!")
+}
+
+func AskForConfirmation(s string, v ...any) bool {
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		logWarning("\n%s [(y)es or (n)o]: ", fmt.Sprintf(s, v...))
+
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			logError(err)
+			handleErr(err)
+		}
+
+		response = strings.ToLower(strings.TrimSpace(response))
+
+		switch response {
+		case "y", "yes":
+			return true
+		case "n", "no":
+			return false
+		}
+	}
 }
 
 func copy(inDir, outDir, inFile, outFile string) {

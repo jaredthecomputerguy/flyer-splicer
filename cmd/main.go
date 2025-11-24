@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	"github.com/jaredthecomputerguy/flyer-splicer/internal"
 )
 
@@ -12,28 +10,19 @@ const (
 )
 
 func main() {
-	var volume string
+	inDir, outDir, volDir := parseArgs()
 
-	inputDir := DEFAULT_INPUT_DIR
-	outputDir := DEFAULT_OUT_DIR
+	inFM := internal.NewFileManager(inDir)
+	outFM := internal.NewFileManager(outDir)
 
-	args := os.Args[1:]
-	if len(args) >= 1 {
-		inputDir = args[0]
+	internal.ProcessFiles(inFM, outFM)
+
+	if volDir != "" {
+		confirmed := internal.AskForConfirmation("confirm: do you want to erase the files in volume %s?", volDir)
+		if confirmed {
+			volFM := internal.NewFileManager(volDir)
+			volFM.Clean()
+		}
+		internal.CopyToVolume(volDir, outFM)
 	}
-	if len(args) >= 2 {
-		outputDir = args[1]
-	}
-	if len(args) >= 3 {
-		volume = args[2]
-	}
-
-	inputFileManager := internal.NewFileManager(inputDir)
-	outputFileManager := internal.NewFileManager(outputDir)
-	outputFileManager.Clean()
-
-	inputFileManager.Sort()
-
-	internal.ProcessFiles(inputFileManager, outputFileManager)
-	internal.CopyToVolume(volume, outputFileManager)
 }
