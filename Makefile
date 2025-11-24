@@ -12,21 +12,21 @@ all: $(BIN)
 
 # Build binary if sources changed
 $(BIN): $(SRC)
-	@echo "Building..."
+	@printf "Building...\n-----\n"
 	@mkdir -p $(BIN_DIR)
 	@go build -o $(BIN) $(SRC)
 
 # Run binary
 run: $(BIN)
-	@echo "Running..."
+	@printf "Running...\n-----\n"
 	@./$(BIN)
 
 # Development mode (quick run without building)
 dev:
-	@echo "Developing..."
+	@printf "Developing...\n-----\n"
 	@go run main.go
 
 # Clean output directory
 clean:
-	@echo "Cleaning..."
+	@printf "Cleaning...\n-----\n"
 	@rm -rf $(BIN_DIR)
