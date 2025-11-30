@@ -3,7 +3,7 @@ package internal
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"sort"
 )
 
@@ -24,21 +24,49 @@ func NewFileManager(dir string) *FileManager {
 
 func (fm *FileManager) Clean() {
 	log("clean: cleaning `%s`\n", fm.Dir)
+
 	if len(fm.Files) < 1 {
 		logWarning("clean: directory %s is empty\n", fm.Dir)
 		return
 	}
 
-	var err error
+	var errs []error
 
 	for _, file := range fm.Files {
-		err = os.Remove(path.Join(fm.Dir, file))
+		full := filepath.Join(fm.Dir, file)
+
+		info, err := os.Stat(full)
+		if err != nil {
+			logErrorf("cannot stat %s: %v", file, err)
+			errs = append(errs, fmt.Errorf("stat failed for %s: %w", file, err))
+			continue
+		}
+
+		if info.IsDir() {
+			err = os.RemoveAll(full)
+		} else {
+			err = os.Remove(full)
+		}
+
+		if err != nil {
+			logErrorf("failed to remove %s: %v", file, err)
+			errs = append(errs, fmt.Errorf("remove failed for %s: %w", file, err))
+			continue
+		}
+
 		logErrorf("  removed: %s", file)
 	}
 
 	fm.Files = nil
 	log("clean: finished\n\n")
-	handleErr(err)
+
+	// Log collected errors, if any
+	if len(errs) > 0 {
+		logErrorf("clean: encountered %d errors:", len(errs))
+		for _, err := range errs {
+			logErrorf("  %v", err)
+		}
+	}
 }
 
 func (fm *FileManager) Sort() {
