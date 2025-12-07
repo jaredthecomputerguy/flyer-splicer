@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path"
 	"slices"
 	"strings"
@@ -107,14 +108,43 @@ func AskForConfirmation(s string, v ...any) bool {
 	}
 }
 
+func UnmountVolume(vol string) {
+	run := func(cmd string, args ...string) {
+		c := exec.Command(cmd, args...)
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+		if err := c.Run(); err != nil {
+			logError(err)
+			handleErr(err)
+		}
+	}
+
+	// disable indexing
+	run("mdutil", "-i", "off", vol)
+
+	// unmount disk
+	run("diskutil", "eject", vol)
+}
+
 func copy(inDir, outDir, inFile, outFile string) {
 	src, err := os.Open(path.Join(inDir, inFile))
 	handleErr(err)
-	defer src.Close()
+	defer func() {
+		if err := src.Close(); err != nil {
+			logError(err)
+			handleErr(err)
+		}
+	}()
 
 	dest, err := os.Create(path.Join(outDir, outFile))
 	handleErr(err)
-	defer dest.Close()
+
+	defer func() {
+		if err := dest.Close(); err != nil {
+			logError(err)
+			handleErr(err)
+		}
+	}()
 
 	_, err = io.Copy(dest, src)
 	handleErr(err)
