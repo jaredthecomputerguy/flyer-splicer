@@ -18,11 +18,15 @@ func main() {
 	internal.ProcessFiles(inFM, outFM)
 
 	if volDir != "" {
-		confirmed := internal.AskForConfirmation("confirm: do you want to erase the files in volume %s?", volDir)
-		if confirmed {
+		eraseVol := internal.AskForConfirmation("confirm: do you want to erase the files in volume %s?", volDir)
+		if eraseVol {
 			volFM := internal.NewFileManager(volDir)
 			volFM.Clean()
 		}
 		internal.CopyToVolume(volDir, outFM)
+		unmountVol := internal.AskForConfirmation("confirm: do you want to unmount volume %s?", volDir)
+		if unmountVol {
+			internal.UnmountVolume(volDir)
+		}
 	}
 }
